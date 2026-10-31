@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reedy</title>
+<meta name="description" content="Senior, Staff and leadership engineering and product jobs at a16z and YC startups, straight from their own job boards.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!--APP-->
+<div class="app">
+  <aside class="side" id="side" aria-label="Navigation">
+    <a class="brand" href="#">
+      <span class="brand-mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 18 18"><path d="M3 14h4v-4h4V6h4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="brand-name">Reedy</span>
+    </a>
+
+    <nav class="nav">
+      <p class="nav-h">Browse</p>
+      <button id="view-jobs" class="nav-item" type="button" aria-current="page">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="4.5" width="12" height="9" rx="1.6"/><path d="M5.5 4.5V3.2c0-.6.5-1.2 1.2-1.2h2.6c.7 0 1.2.6 1.2 1.2v1.3M2 8.5h12"/></svg>
+        Job board
+      </button>
+      <button id="view-tracker" class="nav-item" type="button">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11l-4-2.8-4 2.8z"/></svg>
+        Tracker <span class="nav-n" id="saved-count">0</span>
+      </button>
+
+      <p class="nav-h">Tracks</p>
+      <div class="tracks">
+        <button class="nav-item" type="button" data-track="startup" aria-current="true">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8c2.6 1.4 3.8 4 3.4 7.4l-1.8 2.3H6.4L4.6 9.2C4.2 5.8 5.4 3.2 8 1.8Z"/><circle cx="8" cy="6.6" r="1.3"/><path d="M6.4 11.5 5.6 14M9.6 11.5l.8 2.5"/></svg>
+          Startups <span class="nav-n" id="startup-count">0</span>
+        </button>
+        <button class="nav-item" type="button" data-track="tech">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="10" height="12" rx="1.2"/><path d="M6 5h1M9 5h1M6 8h1M9 8h1M7 14v-3h2v3"/></svg>
+          Big tech <span class="soon">soon</span>
+        </button>
+        <button class="nav-item" type="button" data-track="traditional">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14h12M3 14V7l5-3.5L13 7v7M6 14v-4h4v4"/></svg>
+          Traditional <span class="soon">soon</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="side-foot">
+      <p id="foot-sync"></p>
+      <p>Listings come from each company's own job board (Ashby, Greenhouse, Lever, YC). Apply links go to the employer.</p>
+      <button id="theme" class="theme-btn" type="button" aria-label="Toggle dark mode">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.6A5.7 5.7 0 0 1 6.4 2.5a5.7 5.7 0 1 0 7.1 7.1Z"/></svg>
+        <span id="theme-label">Dark mode</span>
+      </button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <main class="main">
+    <header class="head">
+      <button id="menu" class="icon-btn menu-btn" type="button" aria-label="Open navigation" aria-controls="side" aria-expanded="false">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg>
+      </button>
+      <div class="head-main">
+        <div class="head-row">
+          <h1 id="page-title">Startups</h1>
+          <span class="live" id="live" hidden><i aria-hidden="true"></i><span id="live-text"></span></span>
+        </div>
+        <p class="tagline" id="tagline">Senior+ engineering and product roles at a16z and YC startups, straight from each company's own job board.</p>
+      </div>
+    </header>
+
+    <div id="job-controls" class="toolbar">
+      <label class="search">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="m10.5 10.5 3 3"/></svg>
+        <input id="q" type="search" placeholder="Search title, company or skill" autocomplete="off" aria-label="Search title, company or skill">
+        <kbd class="kbd" aria-hidden="true">/</kbd>
+      </label>
+      <label class="sel">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13h3v-3h3V7h3V3"/></svg>
+        <select id="f-level" aria-label="Level">
+          <option value="mid">Mid-Senior +</option>
+          <option value="senior">Senior +</option>
+          <option value="staff">Staff / Principal +</option>
+          <option value="mgmt">Manager +</option>
+        </select>
+      </label>
+      <label class="sel">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5 14 8l-3.5 3.5"/></svg>
+        <select id="f-role" aria-label="Role">
+          <option value="all">Eng + Product</option>
+          <option value="eng">Engineering</option>
+          <option value="pm">Product</option>
+        </select>
+      </label>
+      <label class="sel">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14s4.5-4 4.5-7.3a4.5 4.5 0 0 0-9 0C3.5 10 8 14 8 14Z"/><circle cx="8" cy="6.6" r="1.5"/></svg>
+        <select id="f-loc" aria-label="Location">
+          <option value="all">US + Remote</option>
+          <option value="remote">Remote (US)</option>
+          <option value="bay">SF Bay Area</option>
+          <option value="nyc">New York</option>
+          <option value="sea">Seattle</option>
+          <option value="la">Los Angeles</option>
+          <option value="bos">Boston</option>
+          <option value="aus">Austin</option>
+          <option value="chi">Chicago</option>
+        </select>
+      </label>
+      <label class="sel">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5v11M2.5 11 5 13.5 7.5 11M11 13.5v-11M8.5 5 11 2.5 13.5 5"/></svg>
+        <select id="f-sort" aria-label="Sort">
+          <option value="new">Recently added</option>
+          <option value="pay">Highest pay</option>
+          <option value="level">Most senior</option>
+        </select>
+      </label>
+      <div class="more-wrap">
+        <button id="more-toggle" class="tool-btn" type="button" aria-expanded="false" aria-controls="more">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M4 8h8M6 12h4"/></svg>
+          Filters <span id="more-count" class="badge" hidden>0</span>
+        </button>
+        <div id="more" class="more" hidden>
+          <div class="more-grid">
+            <div><h3>Backed by</h3><div class="chips" id="c-backer"></div></div>
+            <div><h3>Posted within</h3><div class="chips" id="c-age"></div></div>
+            <div class="span"><h3>Company stage</h3><div class="chips" id="c-stage"></div></div>
+            <div class="span"><h3>Minimum base pay</h3><div class="chips" id="c-pay"></div></div>
+          </div>
+          <div class="checks">
+            <label><input id="f-unk" type="checkbox" checked> Include roles with no stated level</label>
+            <label><input id="f-visa" type="checkbox"> Sponsors visa (YC listings)</label>
+            <label><input id="f-paid" type="checkbox"> Pay range listed</label>
+          </div>
+          <div class="more-foot"><button id="reset" class="link-btn" type="button">Reset all</button><button id="more-done" class="done-btn" type="button">Done</button></div>
+        </div>
+      </div>
+      <button class="link-btn reset-inline" type="button" data-reset>Reset</button>
+    </div>
+
+    <div id="spec" class="spec" role="group" aria-label="Specialty"></div>
+
+    <div class="results">
+      <span id="meta"></span>
+      <button id="share" class="share-btn" type="button">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5a3 3 0 0 0 4.2 0l2.3-2.3a3 3 0 0 0-4.2-4.2l-.9.9M9.5 6.5a3 3 0 0 0-4.2 0L3 8.8A3 3 0 0 0 7.2 13l.9-.9"/></svg>
+        Copy link
+      </button>
+    </div>
+
+    <div id="content"></div>
+  </main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<!--DATA-->
+<script src="app.js"></script>
+</body>
+</html>

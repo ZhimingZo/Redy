@@ -1,0 +1,34 @@
+name: crawl
+
+# Hourly crawl of a16z + YC startup job boards; commits web/data/jobs.json, which Vercel (or GitHub Pages) serves.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q tests
+      - run: python -m crawler.run --out web/data/jobs.json
+      - name: Commit data if it changed
+        run: |
+          git config user.name "reedy-bot"
+          git config user.email "reedy-bot@users.noreply.github.com"
+          git add web/data/jobs.json
+          git diff --cached --quiet || git commit -m "data: crawl $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
