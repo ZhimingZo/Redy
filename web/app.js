@@ -1,4 +1,6 @@
-/* Redy front end: filters, job list and a per-browser application tracker. No build step. */
+/* Redy front end: filters, job list and a per-person application tracker. No build step.
+   Signed out, the tracker stays in this browser. Signed in with Google, it lives in Supabase
+   under that account and nobody else's row policy can read it. */
 (() => {
   "use strict";
 
@@ -63,6 +65,8 @@
   let state = fromURL() || { ...DEFAULTS, ...store.get("filters", {}) };
   let saved = store.get("saved", {});
   let seen = store.get("seen", {});
+  let account = null;
+  let sb = null;
   let shown = PAGE, track = new URLSearchParams(location.search).get("track") || "startup";
   if (!["startup", "tech", "traditional"].includes(track)) track = "startup";
 
@@ -346,10 +350,12 @@
       });
     const counts = TRACK_STAGES.slice(0, 5).map((s) => `<div class="stage-card"><b>${items.filter((j) => saved[j.id].stage === s).length}</b><span>${s}</span></div>`).join("");
     const due = items.filter((j) => followDue(saved[j.id])).length;
-    $("meta").innerHTML = `<b>${items.length}</b> tracked · saved in this browser` + (due ? ` · <b>${due}</b> to follow up` : "");
+    const where = account ? "saved to your account" : "saved in this browser";
+    const signHint = sb && !account ? " Sign in with Google and this list follows you to another browser." : "";
+    $("meta").innerHTML = `<b>${items.length}</b> tracked · ${where}` + (due ? ` · <b>${due}</b> to follow up` : "");
     $("content").innerHTML = items.length
       ? `<div class="pipeline">${counts}</div><table class="jobs">${head(true)}<tbody>${items.map((j) => jobRow(j, true)).join("")}</tbody></table>`
-      : `<div class="empty"><h2>Your tracker is empty</h2><p>Star any role on the job board and it lands here. Move it through Applied, Recruiter screen, Interviewing and Offer. The applied date fills in when you mark Applied, and a follow-up date brings that role back to the top.</p></div>`;
+      : `<div class="empty"><h2>Your tracker is empty</h2><p>Star any role on the job board and it lands here. Move it through Applied, Recruiter screen, Interviewing and Offer. The applied date fills in when you mark Applied, and a follow-up date brings that role back to the top.${signHint}</p></div>`;
   }
 
   function openCompany(key, trackName) {
@@ -495,6 +501,194 @@
     toastTimer = setTimeout(() => { t.hidden = true; }, 4500);
   }
 
+  /* Account tracker. Guest edits stay in localStorage. A signed-in edit also upserts that one row. */
+  const noteTimers = new Map();
+  let syncWarned = false;
+  let authGen = 0;
+
+  function dateOrNull(v) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(v || "") ? v : null;
+  }
+  function entryFromRow(row) {
+    return {
+      stage: row.stage,
+      ts: Number(row.updated_ms) || 0,
+      note: row.note || "",
+      applied: row.applied || "",
+      follow: row.follow || "",
+      job: row.job || {},
+    };
+  }
+  function rowFromEntry(id, entry, userId) {
+    return {
+      user_id: userId,
+      job_id: id,
+      stage: TRACK_STAGES.includes(entry.stage) ? entry.stage : "Saved",
+      note: String(entry.note || "").slice(0, 2000),
+      applied: dateOrNull(entry.applied),
+      follow: dateOrNull(entry.follow),
+      updated_ms: entry.ts || Date.now(),
+      job: entry.job && typeof entry.job === "object" ? entry.job : {},
+    };
+  }
+  function writeLocal() {
+    store.set("saved", saved);
+    if (account) store.set("savedOwner", account.id);
+  }
+  function warnSync() {
+    if (syncWarned) return;
+    syncWarned = true;
+    toast("Couldn't reach your account. Changes are still in this browser.");
+  }
+  function persistEntry(id) {
+    writeLocal();
+    if (!account || !sb || !saved[id]) return;
+    const userId = account.id;
+    clearTimeout(noteTimers.get(id));
+    const wait = document.activeElement?.dataset?.note === id ? 400 : 0;
+    noteTimers.set(id, setTimeout(() => {
+      noteTimers.delete(id);
+      if (!account || account.id !== userId || !saved[id]) return;
+      sb.from("saved_jobs").upsert(rowFromEntry(id, saved[id], userId)).then(({ error }) => { if (error) warnSync(); });
+    }, wait));
+  }
+  function forgetEntry(id) {
+    clearTimeout(noteTimers.get(id));
+    noteTimers.delete(id);
+    writeLocal();
+    if (!account || !sb) return;
+    sb.from("saved_jobs").delete().eq("job_id", id).then(({ error }) => { if (error) warnSync(); });
+  }
+  function paintAccount(user) {
+    const el = $("account");
+    if (!el) return;
+    if (!sb) { el.hidden = true; return; }
+    el.hidden = false;
+    if (!user) {
+      el.innerHTML = `<button id="sign-in" class="theme-btn account-btn" type="button" title="Google only shares your name and email">Sign in with Google</button>`;
+      $("sign-in").onclick = () => {
+        sb.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: location.origin + "/",
+            scopes: "openid email profile",
+            queryParams: { prompt: "select_account" },
+          },
+        });
+      };
+      return;
+    }
+    const who = esc(user.email || "Signed in");
+    el.innerHTML = `<p class="account-who" title="${who}">${who}</p><div class="account-row"><button id="sign-out" class="theme-btn" type="button">Sign out</button><button id="delete-account" class="link-quiet" type="button">Delete account</button></div>`;
+    $("sign-out").onclick = () => sb.auth.signOut();
+    $("delete-account").onclick = async () => {
+      if (!confirm("Delete your Redy account and every role in your tracker? Your Google account stays.")) return;
+      const { error } = await sb.rpc("delete_own_account");
+      if (error) { toast("Couldn't delete the account. Try again."); return; }
+      await sb.auth.signOut();
+      toast("Account deleted.");
+    };
+  }
+  function applyRemote(payload) {
+    if (!account) return;
+    if (payload.eventType === "DELETE") {
+      const id = payload.old && payload.old.job_id;
+      if (!id || !saved[id]) return;
+      delete saved[id];
+      writeLocal();
+      render();
+      return;
+    }
+    const row = payload.new;
+    if (!row || !row.job_id) return;
+    const cur = saved[row.job_id];
+    const ts = Number(row.updated_ms) || 0;
+    if (cur && (cur.ts || 0) >= ts) return;
+    const focused = document.activeElement;
+    if (focused && focused.dataset && (focused.dataset.note === row.job_id || focused.dataset.stage === row.job_id || focused.dataset.applied === row.job_id || focused.dataset.follow === row.job_id)) return;
+    saved[row.job_id] = entryFromRow(row);
+    writeLocal();
+    render();
+  }
+  async function reconcile(userId, gen) {
+    const owner = store.get("savedOwner", null);
+    const local = owner === userId || owner == null ? { ...saved } : {};
+    if (owner && owner !== userId) saved = {};
+    const { data, error } = await sb.from("saved_jobs").select("job_id,stage,note,applied,follow,updated_ms,job");
+    if (gen !== authGen) return;
+    if (error) {
+      if (owner !== userId) saved = {};
+      warnSync();
+      writeLocal();
+      return;
+    }
+    const remote = {};
+    for (const row of data || []) remote[row.job_id] = entryFromRow(row);
+    const uploads = [];
+    if (owner === userId) {
+      saved = { ...remote };
+      for (const [id, entry] of Object.entries(local)) {
+        if (!saved[id] || (entry.ts || 0) > (saved[id].ts || 0)) {
+          saved[id] = entry;
+          uploads.push(rowFromEntry(id, entry, userId));
+        }
+      }
+    } else if (!owner && !Object.keys(remote).length && Object.keys(local).length) {
+      saved = local;
+      for (const [id, entry] of Object.entries(local)) uploads.push(rowFromEntry(id, entry, userId));
+      toast("Moved this browser's tracker to your account.");
+    } else {
+      saved = remote;
+    }
+    writeLocal();
+    if (uploads.length) {
+      const { error: upErr } = await sb.from("saved_jobs").upsert(uploads);
+      if (upErr) warnSync();
+    }
+  }
+  function listen(userId) {
+    return sb.channel("saved-" + userId)
+      .on("postgres_changes", { event: "*", schema: "public", table: "saved_jobs", filter: "user_id=eq." + userId }, applyRemote)
+      .subscribe();
+  }
+  let syncChannel = null;
+  async function applySession(session) {
+    const gen = ++authGen;
+    const user = session && session.user;
+    if (syncChannel) { sb.removeChannel(syncChannel); syncChannel = null; }
+    if (!user) {
+      const hadOwner = store.get("savedOwner", null);
+      if (hadOwner) { saved = {}; store.set("saved", {}); store.set("savedOwner", null); }
+      account = null;
+      paintAccount(null);
+      if (hadOwner) render();
+      return;
+    }
+    account = { id: user.id, email: user.email || "" };
+    paintAccount(user);
+    await reconcile(user.id, gen);
+    if (gen !== authGen) return;
+    syncChannel = listen(user.id);
+    render();
+  }
+  async function startAuth() {
+    const cfg = window.REDY_CONFIG || {};
+    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) return;
+    let createClient;
+    try {
+      ({ createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.6/+esm"));
+    } catch {
+      return;
+    }
+    sb = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" },
+    });
+    paintAccount(null);
+    const { data, error } = await sb.auth.getSession();
+    if (!error) applySession(data.session);
+    sb.auth.onAuthStateChange((_event, session) => { setTimeout(() => applySession(session), 0); });
+  }
+
   /* share */
   $("share").addEventListener("click", async () => {
     toURL();
@@ -556,8 +750,8 @@
       const id = sv.dataset.save;
       const setSaved = (entry) => {
         if (entry) saved[id] = entry; else delete saved[id];
-        store.set("saved", saved);
-        document.querySelectorAll(`[data-save="${id}"]`).forEach((b) => b.setAttribute("aria-pressed", !!entry));
+        if (entry) persistEntry(id); else forgetEntry(id);
+        document.querySelectorAll(`[data-save="${CSS.escape(id)}"]`).forEach((b) => b.setAttribute("aria-pressed", entry ? "true" : "false"));
         $("saved-count").textContent = Object.keys(saved).length;
       };
       if (saved[id]) {
@@ -574,8 +768,8 @@
     const rm = e.target.closest("[data-remove]");
     if (rm) {
       const id = rm.dataset.remove, prev = saved[id];
-      delete saved[id]; store.set("saved", saved); render();
-      toast("Removed from Tracker", [{ label: "Undo", run: () => { saved[id] = prev; store.set("saved", saved); render(); } }]);
+      delete saved[id]; forgetEntry(id); render();
+      toast("Removed from Tracker", [{ label: "Undo", run: () => { saved[id] = prev; persistEntry(id); render(); } }]);
       return;
     }
     if (e.target.closest("#load-more")) { shown += PAGE; render(); return; }
@@ -587,20 +781,22 @@
       const row = saved[st.dataset.stage];
       row.stage = st.value;
       if (st.value === "Applied" && !row.applied) row.applied = todayISO();
-      store.set("saved", saved);
+      row.ts = Date.now();
+      persistEntry(st.dataset.stage);
       render();
       return;
     }
     const applied = e.target.closest("[data-applied]");
-    if (applied) { saved[applied.dataset.applied].applied = applied.value; store.set("saved", saved); }
+    if (applied) { saved[applied.dataset.applied].applied = applied.value; saved[applied.dataset.applied].ts = Date.now(); persistEntry(applied.dataset.applied); }
     const follow = e.target.closest("[data-follow]");
-    if (follow) { saved[follow.dataset.follow].follow = follow.value; store.set("saved", saved); render(); }
+    if (follow) { saved[follow.dataset.follow].follow = follow.value; saved[follow.dataset.follow].ts = Date.now(); persistEntry(follow.dataset.follow); render(); }
   });
   document.addEventListener("input", (e) => {
     const n = e.target.closest("[data-note]");
-    if (n) { saved[n.dataset.note].note = n.value; store.set("saved", saved); }
+    if (n) { saved[n.dataset.note].note = n.value; saved[n.dataset.note].ts = Date.now(); persistEntry(n.dataset.note); }
   });
 
+  startAuth();
   load().catch((err) => {
     $("content").innerHTML = `<div class="empty"><h2>Jobs didn't load</h2><p>The job list couldn't be read (${esc(err.message)}). Refresh the page to try again.</p></div>`;
   });

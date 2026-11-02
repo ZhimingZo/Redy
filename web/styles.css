@@ -71,6 +71,12 @@ svg { flex: none; }
 .soon { margin-left: auto; font-size: 11px; font-weight: 500; color: var(--faint); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
 .side-foot { margin-top: auto; display: grid; gap: 8px; padding: 0 8px; font-size: 12.5px; color: var(--faint); line-height: 1.5; }
 .side-foot p { margin: 0; }
+.account { display: grid; gap: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.account-who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.account-btn { width: 100%; justify-content: center; }
+.account-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.link-quiet { border: 0; background: none; padding: 0; cursor: pointer; font-size: 12px; color: var(--faint); }
+.link-quiet:hover { color: var(--ink); }
 #foot-sync { color: var(--muted); }
 .theme-btn { justify-self: start; display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--card); border-radius: 7px; padding: 6px 10px; cursor: pointer; font-size: 13px; color: var(--muted); }
 .theme-btn:hover { color: var(--ink); }

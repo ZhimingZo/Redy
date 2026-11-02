@@ -41,6 +41,6 @@ snapshots/          a16z.json  yc.json  (first crawl, Oct 31, 2026)
 ## Next iterations
 
 - Tech and Traditional industry tracks: Workday, Eightfold, Oracle and custom career-site adapters.
-- Postgres + accounts (schema in the PRD's ERD), tracker synced across devices.
+- Tracker accounts: `supabase/schema.sql` plus Google sign-in. Each person's rows are readable only by that login.
 - Email and phone push alerts for saved searches; AI mock interviews.
 - LLM fallback for roles with no stated level (`unk`, ~17% of rows today).
