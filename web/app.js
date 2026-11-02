@@ -246,7 +246,9 @@
       ? { key: "closed", label: "Closed", title: "No longer listed on the company job board" }
       : j.chg
         ? { key: "chg", label: "Changed", title: "Still listed, but the description changed" }
-        : { key: "open", label: "Open", title: "Still listed, and the description matches the last check" };
+        : j.chk
+          ? { key: "open", label: "Open", title: "Still listed, and the description matches the last check" }
+          : { key: "open", label: "Open", title: "Listed on the company job board in the latest crawl" };
     const tags = [
       !trackerMode && !j.closed && j.days != null && j.days <= 1 ? '<span class="tag new">New</span>' : "",
       j.yoe ? `<span class="tag">${j.yoe}+ yrs</span>` : "",

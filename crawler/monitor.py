@@ -73,22 +73,42 @@ def page_signal(status: int, body: str, job_id: str) -> str:
 
 
 def apply_check(job: dict, *, board_ok: bool, present: bool, live_hash: str | None) -> str:
-    """Stamp one job. A failed board read never marks the role closed."""
+    """Stamp one job. A failed board read never marks the role closed.
+
+    chk means this read compared the description and it still matches.
+    """
     if not board_ok:
         return "unknown"
     if not present:
         job["closed"] = True
         job.pop("chg", None)
+        job.pop("chk", None)
         return "closed"
     job.pop("closed", None)
     if live_hash and job.get("dh") and live_hash != job["dh"]:
         job["chg"] = True
+        job.pop("chk", None)
         return "changed"
     if live_hash and not job.get("dh"):
         job["dh"] = live_hash
     elif job.get("chg"):
+        job.pop("chk", None)
         return "changed"
+    if live_hash:
+        job["chk"] = True
+    else:
+        job.pop("chk", None)
     return "open"
+
+
+def apply_yc(job: dict, state: str, text: str | None) -> str:
+    """The company index already lists this job. A failed page read stays unknown."""
+    if state == "closed":
+        return apply_check(job, board_ok=True, present=False, live_hash=None)
+    if state != "open":
+        job.pop("closed", None)
+        return "unknown"
+    return apply_check(job, board_ok=True, present=True, live_hash=normalize.desc_hash(text))
 
 
 def _get(url: str, **params) -> requests.Response:
@@ -242,11 +262,7 @@ def check_file(path: str, boards_by_domain: dict[str, tuple[str, str]], workers:
                 counts[apply_check(job, board_ok=True, present=False, live_hash=None)] += 1
                 continue
             state, text = descriptions.get(job.get("url") or "", ("unknown", None))
-            if state == "closed":
-                counts[apply_check(job, board_ok=True, present=False, live_hash=None)] += 1
-                continue
-            live = normalize.desc_hash(text) if state == "open" else None
-            counts[apply_check(job, board_ok=True, present=True, live_hash=live)] += 1
+            counts[apply_yc(job, state, text)] += 1
             continue
         body = boards.get((parsed["p"], parsed["slug"]))
         if body is None:

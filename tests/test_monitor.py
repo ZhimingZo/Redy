@@ -1,4 +1,4 @@
-from crawler.monitor import apply_check, page_signal, parse_posting, yc_listed
+from crawler.monitor import apply_check, apply_yc, page_signal, parse_posting, yc_listed
 from crawler.normalize import desc_hash
 
 
@@ -44,17 +44,55 @@ def test_missing_from_board_is_closed_and_a_failed_read_is_not():
 def test_description_change_keeps_the_original_hash():
     job = {"dh": "originalhash0000"}
     assert apply_check(job, board_ok=True, present=True, live_hash="originalhash0000") == "open"
+    assert job["chk"] is True
     assert "chg" not in job
     assert apply_check(job, board_ok=True, present=True, live_hash="rewrittenhash000") == "changed"
     assert job["chg"] is True
     assert job["dh"] == "originalhash0000"
+    assert "chk" not in job
 
 
 def test_a_matching_description_keeps_a_change_already_noted():
-    job = {"dh": "originalhash0000", "chg": True}
+    job = {"dh": "originalhash0000", "chg": True, "chk": True}
     assert apply_check(job, board_ok=True, present=True, live_hash="originalhash0000") == "changed"
     assert job["chg"] is True
     assert job["dh"] == "originalhash0000"
+    assert "chk" not in job
+
+
+def test_a_read_without_a_description_hash_is_not_a_verified_match():
+    job = {"dh": "originalhash0000", "chk": True}
+    assert apply_check(job, board_ok=True, present=True, live_hash=None) == "open"
+    assert "closed" not in job
+    assert "chk" not in job
+
+
+def test_a_failed_board_read_keeps_the_last_check():
+    unread = {"chk": True}
+    assert apply_check(unread, board_ok=False, present=False, live_hash=None) == "unknown"
+    assert unread["chk"] is True
+    assert "closed" not in unread
+
+
+def test_yc_page_failure_stays_unknown_when_the_index_still_lists_it():
+    job = {"closed": True, "dh": "originalhash0000"}
+    text = "We are hiring a senior engineer who will own the public API and the on-call rotation for that service. You will write the design doc."
+    assert apply_yc(job, "unknown", text) == "unknown"
+    assert "closed" not in job
+    assert "chk" not in job
+    assert job["dh"] == "originalhash0000"
+
+
+def test_yc_open_page_checks_the_description_and_a_closed_page_does_not():
+    text = "We are hiring a senior engineer who will own the public API and the on-call rotation for that service. You will write the design doc."
+    job = {}
+    assert apply_yc(job, "open", text) == "open"
+    assert job["chk"] is True
+    assert job["dh"] == desc_hash(text)
+    closed = {"chk": True, "dh": job["dh"]}
+    assert apply_yc(closed, "closed", None) == "closed"
+    assert closed["closed"] is True
+    assert "chk" not in closed
 
 
 def test_yc_listing_matches_the_job_url_tail():
