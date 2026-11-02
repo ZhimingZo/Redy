@@ -599,6 +599,20 @@
       "checked": "2026-10-31T22:59:33+00:00"
     },
     {
+      "name": "Instacart",
+      "ticker": "CART",
+      "kind": "public",
+      "sector": "Consumer Staples",
+      "hq": "San Francisco, California",
+      "website": "https://instacart.com",
+      "domain": "instacart.com",
+      "ats": "greenhouse",
+      "slug": "instacart",
+      "careers": "https://instacart.careers/",
+      "error": null,
+      "checked": null
+    },
+    {
       "name": "Intuit",
       "ticker": "INTU",
       "kind": "public",

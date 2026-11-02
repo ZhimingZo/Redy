@@ -51,7 +51,7 @@ def _prefer(new: str, old: str) -> bool:
 
 # GICS puts these under retail, autos, ads, or payments. They are US tech platforms.
 PLATFORM_TICKERS = frozenset({
-    "AMZN", "TSLA", "UBER", "ABNB", "DASH", "COIN", "NFLX",
+    "AMZN", "TSLA", "UBER", "ABNB", "DASH", "CART", "COIN", "NFLX",
     "APP", "TTD", "XYZ", "PYPL", "VEEV",
 })
 PLATFORM_SUB = frozenset({

@@ -418,6 +418,29 @@ def _ensure_pinterest() -> None:
     save_registry("data/tech_companies.json", doc)
 
 
+def _ensure_instacart() -> None:
+    doc = load_registry("data/tech_companies.json")
+    if any(c.get("domain") == "instacart.com" for c in doc["companies"]):
+        return
+    row = {
+        "name": "Instacart",
+        "ticker": "CART",
+        "kind": "public",
+        "sector": "Consumer Staples",
+        "hq": "San Francisco, California",
+        "website": "https://instacart.com",
+        "domain": "instacart.com",
+        "ats": "greenhouse",
+        "slug": "instacart",
+        "careers": "https://instacart.careers/",
+        "error": None,
+        "checked": None,
+    }
+    at = next((i for i, c in enumerate(doc["companies"]) if c.get("domain") == "intuit.com"), len(doc["companies"]))
+    doc["companies"].insert(at, row)
+    save_registry("data/tech_companies.json", doc)
+
+
 def _ensure_roblox() -> None:
     doc = load_registry("data/tech_companies.json")
     if any(c.get("domain") == "roblox.com" for c in doc["companies"]):
@@ -442,10 +465,11 @@ def _ensure_roblox() -> None:
 
 
 def crawl_pages(out: str = "web/data/tech.json") -> int:
-    """Greenhouse boards named by Cloudflare, DoorDash, Pinterest, and Roblox career pages."""
+    """Greenhouse boards named by Cloudflare, DoorDash, Instacart, Pinterest, and Roblox career pages."""
     from .sources.ats import greenhouse, greenhouse_posting_places
 
     _ensure_cloudflare()
+    _ensure_instacart()
     _ensure_pinterest()
     _ensure_roblox()
     specs = (
@@ -453,6 +477,8 @@ def crawl_pages(out: str = "web/data/tech.json") -> int:
          {"ats": "greenhouse", "slug": "cloudflare", "careers": "https://www.cloudflare.com/careers/jobs/"}),
         ("doordash.com", lambda: greenhouse("doordashusa", {"co": "DoorDash", "cslug": "doordash", "dom": "doordash.com", "src": "tech"}),
          {"ats": "greenhouse", "slug": "doordashusa", "careers": "https://careersatdoordash.com/job-search/"}),
+        ("instacart.com", lambda: greenhouse("instacart", {"co": "Instacart", "cslug": "instacart", "dom": "instacart.com", "src": "tech"}),
+         {"ats": "greenhouse", "slug": "instacart", "careers": "https://instacart.careers/"}),
         ("pinterest.com", lambda: greenhouse("pinterest", {"co": "Pinterest", "cslug": "pinterest", "dom": "pinterest.com", "src": "tech"}),
          {"ats": "greenhouse", "slug": "pinterest", "careers": "https://www.pinterestcareers.com/jobs/"}),
         ("roblox.com", lambda: greenhouse("roblox", {"co": "Roblox", "cslug": "roblox", "dom": "roblox.com", "src": "tech"}),

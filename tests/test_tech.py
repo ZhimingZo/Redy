@@ -85,9 +85,11 @@ def test_public_list_is_us_tech_only():
          "GICS Sub-Industry": "Interactive Media & Services", "Headquarters Location": "Mountain View, California"},
         {"Symbol": "T", "Security": "AT&T", "GICS Sector": "Communication Services",
          "GICS Sub-Industry": "Integrated Telecommunication Services", "Headquarters Location": "Dallas, Texas"},
+        {"Symbol": "CART", "Security": "Instacart", "GICS Sector": "Consumer Staples",
+         "GICS Sub-Industry": "Food Retail", "Headquarters Location": "San Francisco, California"},
     ]
     names = [c["name"] for c in select_public(rows)]
-    assert names == ["Nvidia", "Accenture", "Amazon", "Alphabet Inc."]
+    assert names == ["Nvidia", "Accenture", "Amazon", "Alphabet Inc.", "Instacart"]
 
 
 def test_unicorns_are_us_and_above_the_floor():
