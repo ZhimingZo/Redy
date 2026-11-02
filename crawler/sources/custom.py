@@ -23,7 +23,7 @@ from .ats import pay_from_text, strip_html, yoe_snippets
 log = logging.getLogger("crawler")
 
 _UA = {
-    "User-Agent": "Mozilla/5.0 (compatible; ReedyBot/0.1; +https://github.com/ZhimingZo/reedy)",
+    "User-Agent": "Mozilla/5.0 (compatible; RedyBot/0.1; +https://redy.fyi)",
     "Accept": "text/html,application/json",
 }
 _TIMEOUT = 30

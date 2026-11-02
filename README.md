@@ -1,4 +1,4 @@
-# Reedy
+# Redy
 
 A free job board for **Mid-Senior and above** engineering and product roles. v0 covers **US startups backed by a16z or Y Combinator**, sourced from each company's own job board.
 
@@ -19,7 +19,7 @@ python -m pytest -q tests
 python -m crawler                                  # live crawl -> web/data/jobs.json
 python -m crawler --from-snapshots snapshots/      # rebuild from saved snapshots
 python -m http.server -d web 8000                  # open http://localhost:8000
-python scripts/bundle.py dist/reedy.html           # single-file build for previews
+python scripts/bundle.py dist/redy.html           # single-file build for previews
 ```
 
 ## Deploy (free)

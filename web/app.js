@@ -1,4 +1,4 @@
-/* Reedy front end: filters, job list and a per-browser application tracker. No build step. */
+/* Redy front end: filters, job list and a per-browser application tracker. No build step. */
 (() => {
   "use strict";
 
@@ -24,9 +24,9 @@
 
   const $ = (id) => document.getElementById(id);
   const store = {
-    // "staffline." was the old prefix: read it as a fallback so saved jobs and filters survive the rename
-    get(k, fallback) { try { const v = localStorage.getItem("reedy." + k) ?? localStorage.getItem("staffline." + k); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
-    set(k, v) { try { localStorage.setItem("reedy." + k, JSON.stringify(v)); } catch { /* storage blocked: state lives for this visit only */ } },
+    // "reedy." and "staffline." are previous names: read them so saved jobs and filters survive the rename
+    get(k, fallback) { try { const v = localStorage.getItem("redy." + k) ?? localStorage.getItem("reedy." + k) ?? localStorage.getItem("staffline." + k); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
+    set(k, v) { try { localStorage.setItem("redy." + k, JSON.stringify(v)); } catch { /* storage blocked: state lives for this visit only */ } },
   };
 
   /* Filters live in the URL so any view can be shared or bookmarked; the last view is also remembered locally. */

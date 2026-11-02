@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 import requests
 
-UA = {"User-Agent": "ReedyBot/0.1 (+https://github.com/; job board for senior engineers)"}
+UA = {"User-Agent": "RedyBot/0.1 (+https://redy.fyi; job board for senior engineers)"}
 TIMEOUT = 25
 
 _YOE_SNIP = re.compile(r"[^.\n]{0,80}\b\d{1,2}\s*\+?\s*(?:-|–|to)?\s*\d{0,2}\+?\s*(?:years|yrs)[^.\n]{0,60}", re.I)

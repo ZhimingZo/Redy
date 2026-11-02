@@ -1,6 +1,6 @@
 """Inline web/ (css, js, data) into one self-contained HTML page for the hosted preview.
 
-    python scripts/bundle.py dist/reedy.html
+    python scripts/bundle.py dist/redy.html
 """
 import re
 import sys
@@ -35,4 +35,4 @@ def main(out: str) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "dist/reedy.html")
+    main(sys.argv[1] if len(sys.argv) > 1 else "dist/redy.html")
