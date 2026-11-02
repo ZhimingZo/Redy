@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@500&display=swap">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
 <!--APP-->
@@ -38,11 +38,11 @@
         </button>
         <button class="nav-item" type="button" data-track="tech">
           <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="10" height="12" rx="1.2"/><path d="M6 5h1M9 5h1M6 8h1M9 8h1M7 14v-3h2v3"/></svg>
-          Big tech <span class="soon">soon</span>
+          Tech <span class="nav-n" id="tech-count">0</span>
         </button>
         <button class="nav-item" type="button" data-track="traditional">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14h12M3 14V7l5-3.5L13 7v7M6 14v-4h4v4"/></svg>
-          Traditional <span class="soon">soon</span>
+          Traditional <span class="nav-n" id="traditional-count">0</span>
         </button>
       </div>
     </nav>
@@ -112,7 +112,7 @@
       <label class="sel">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5v11M2.5 11 5 13.5 7.5 11M11 13.5v-11M8.5 5 11 2.5 13.5 5"/></svg>
         <select id="f-sort" aria-label="Sort">
-          <option value="new">Recently added</option>
+          <option value="new">Recently updated</option>
           <option value="pay">Highest pay</option>
           <option value="level">Most senior</option>
         </select>
@@ -124,14 +124,14 @@
         </button>
         <div id="more" class="more" hidden>
           <div class="more-grid">
-            <div><h3>Backed by</h3><div class="chips" id="c-backer"></div></div>
-            <div><h3>Posted within</h3><div class="chips" id="c-age"></div></div>
-            <div class="span"><h3>Company stage</h3><div class="chips" id="c-stage"></div></div>
+            <div class="startup-only"><h3>Backed by</h3><div class="chips" id="c-backer"></div></div>
+            <div><h3>Updated within</h3><div class="chips" id="c-age"></div></div>
+            <div class="span startup-only"><h3>Company stage</h3><div class="chips" id="c-stage"></div></div>
             <div class="span"><h3>Minimum base pay</h3><div class="chips" id="c-pay"></div></div>
           </div>
           <div class="checks">
             <label><input id="f-unk" type="checkbox" checked> Include roles with no stated level</label>
-            <label><input id="f-visa" type="checkbox"> Sponsors visa (YC listings)</label>
+            <label class="startup-only"><input id="f-visa" type="checkbox"> Sponsors visa (YC listings)</label>
             <label><input id="f-paid" type="checkbox"> Pay range listed</label>
           </div>
           <div class="more-foot"><button id="reset" class="link-btn" type="button">Reset all</button><button id="more-done" class="done-btn" type="button">Done</button></div>
@@ -154,7 +154,8 @@
   </main>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<dialog id="co-card" class="co-card"></dialog>
 <!--DATA-->
-<script src="app.js"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

@@ -156,6 +156,15 @@ def _place(piece: str) -> list[str] | None:
         st = _state_code(p)
         if st:
             return [STATES[st]]
+        # Lever writes "Massachusetts - Boston".
+        dash = [part.strip() for part in re.split(r"\s[-–]\s", p, maxsplit=1)]
+        if len(dash) == 2:
+            st = _state_code(dash[0])
+            if st and dash[1] and not _state_code(dash[1]):
+                return [_city_state(dash[1], st)]
+            st = _state_code(dash[1])
+            if st and dash[0] and not _state_code(dash[0]):
+                return [_city_state(dash[0], st)]
         return []
     # several "City, ST" pairs in one string
     pairs = re.findall(r"([^,]+?),\s*([A-Z]{2})\b(?!\w)", s)

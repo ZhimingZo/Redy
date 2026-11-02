@@ -19,6 +19,14 @@ from . import locations as L
 MIN_LEVELS = {"mid", "senior", "staff", "mgmt", "unk"}  # 'junior' never ships
 
 
+def desc_hash(text: str | None) -> str | None:
+    """Stable id for a job description. Whitespace-only edits do not count."""
+    text = re.sub(r"\s+", " ", text or "").strip()
+    if len(text) < 80:
+        return None
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+
 def _posted(raw: dict, crawled_at: datetime) -> str | None:
     if raw.get("at"):
         try:
@@ -56,7 +64,7 @@ def normalize_job(raw: dict, crawled_at: datetime) -> dict | None:
         return None
 
     key = f"{raw.get('src')}:{raw.get('p')}:{raw.get('cslug')}:{raw.get('id')}"
-    return {
+    out = {
         "id": hashlib.sha1(key.encode()).hexdigest()[:10],
         "t": title,
         "lvl": level,
@@ -72,6 +80,10 @@ def normalize_job(raw: dict, crawled_at: datetime) -> dict | None:
         "src": raw.get("p"),
         "_co": raw,  # stripped after company merge
     }
+    hashed = desc_hash(raw.get("desc"))
+    if hashed:
+        out["dh"] = hashed
+    return out
 
 
 def _company_key(raw: dict) -> str:
@@ -88,10 +100,10 @@ def build(raw_records: list[dict], crawled_at: datetime) -> dict:
             continue
         r = j.pop("_co")
         ck = _company_key(r)
-        backer = "YC" if r.get("src") == "yc" else "a16z"
+        backer = {"yc": "YC", "a16z": "a16z"}.get(r.get("src"))
         c = companies.setdefault(ck, {"n": r.get("co"), "d": r.get("dom"), "backers": [], "stage": None, "sb": "Unknown",
                                       "hc": None, "logo": r.get("logo"), "batch": None, "ind": None})
-        if backer not in c["backers"]:
+        if backer and backer not in c["backers"]:
             c["backers"].append(backer)
         # a16z stage labels are more precise than YC's Early/Growth
         if r.get("stage") and (c["stage"] is None or backer == "a16z"):
@@ -99,6 +111,9 @@ def build(raw_records: list[dict], crawled_at: datetime) -> dict:
         c["hc"] = c["hc"] or r.get("hc")
         c["batch"] = c["batch"] or C.short_batch(r.get("batch"))
         c["ind"] = c["ind"] or r.get("ind") or (", ".join(r.get("mk") or [])[:40] or None)
+        for k in ("bio", "yr", "ceo", "founders"):
+            if r.get(k) and not c.get(k):
+                c[k] = r[k]
         # one row per (company, title): merge roles posted once per city or listed by both sources
         dk = (ck, re.sub(r"[^a-z0-9]+", " ", j["t"].lower()).strip())
         if dk in seen:
@@ -116,6 +131,18 @@ def build(raw_records: list[dict], crawled_at: datetime) -> dict:
     return {"generated_at": crawled_at.isoformat(timespec="seconds"), "companies": companies, "jobs": jobs}
 
 
+def note_changes(previous: list, jobs: list) -> None:
+    """Mark a row when the same posting's description hash changed since the last file."""
+    old = {job.get("id"): job.get("dh") for job in previous if job.get("id")}
+    for job in jobs:
+        prev = old.get(job.get("id"))
+        new = job.get("dh")
+        if prev and new and prev != new:
+            job["chg"] = True
+        elif prev and new and prev == new:
+            job.pop("chg", None)
+
+
 def write(data: dict, path: str) -> None:
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, separators=(",", ":"))
