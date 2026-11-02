@@ -1,6 +1,6 @@
 name: refresh
 
-# Daily rebuild of Tech and Traditional. Startups stay on the hourly crawl.
+# Tech and Traditional once a day, 13:17 UTC, after the startup crawl.
 # This does not call crawl_boards: that rewrite keeps only Greenhouse, Lever, and Ashby
 # and would drop Workday, Oracle, and the company-specific pages.
 on:
@@ -18,7 +18,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

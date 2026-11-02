@@ -25,7 +25,7 @@ python scripts/bundle.py dist/redy.html           # single-file build for previe
 ## Deploy (free)
 
 1. Push this folder to a GitHub repo.
-2. `.github/workflows/crawl.yml` crawls every hour and commits `web/data/jobs.json`.
+2. `.github/workflows/crawl.yml` crawls a16z and YC once a day and commits `web/data/jobs.json`. Tech and Traditional refresh once a day, two hours later.
 3. Import the repo in Vercel with **Root directory = `web`**, no build command. Every data commit redeploys.
 
 ## Layout
