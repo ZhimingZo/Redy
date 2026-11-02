@@ -321,6 +321,20 @@
       "checked": "2026-11-02T01:58:51+00:00"
     },
     {
+      "name": "BillionToOne",
+      "ticker": "BLLN",
+      "kind": "traditional",
+      "sector": "Health Care",
+      "hq": "Menlo Park, California",
+      "website": "https://billiontoone.com",
+      "domain": "billiontoone.com",
+      "ats": "greenhouse",
+      "slug": "billiontoone",
+      "careers": "https://billiontoone.com/careers",
+      "error": null,
+      "checked": null
+    },
+    {
       "name": "Biogen",
       "ticker": "BIIB",
       "kind": "traditional",
@@ -1133,6 +1147,20 @@
       "careers": null,
       "error": null,
       "checked": "2026-10-31T23:30:16+00:00"
+    },
+    {
+      "name": "EquipmentShare",
+      "ticker": "EQPT",
+      "kind": "traditional",
+      "sector": "Industrials",
+      "hq": "Columbia, Missouri",
+      "website": "https://equipmentshare.com",
+      "domain": "equipmentshare.com",
+      "ats": null,
+      "slug": null,
+      "careers": "https://www.equipmentshare.com/careers",
+      "error": null,
+      "checked": null
     },
     {
       "name": "Equifax",

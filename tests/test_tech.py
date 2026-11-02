@@ -8,6 +8,15 @@ from crawler.sources.discovery import company_domain, without_public
 from crawler.sources.techlist import clean_wikidata, select_public, select_unicorns
 
 
+def test_listed_traditional_companies_stay_off_the_startup_crawl():
+    from crawler.__main__ import public_company_domains
+
+    domains = public_company_domains()
+    assert "amplitude.com" in domains
+    assert "billiontoone.com" in domains
+    assert "equipmentshare.com" in domains
+
+
 def test_listed_companies_stay_off_the_startup_crawl():
     public = {"doordash.com"}
     rows = [

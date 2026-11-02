@@ -107,6 +107,20 @@
       "checked": "2026-10-31T22:59:29+00:00"
     },
     {
+      "name": "Amplitude",
+      "ticker": "AMPL",
+      "kind": "public",
+      "sector": "Information Technology",
+      "hq": "San Francisco, California",
+      "website": "https://amplitude.com",
+      "domain": "amplitude.com",
+      "ats": "ashby",
+      "slug": "amplitude",
+      "careers": "https://amplitude.com/careers",
+      "error": null,
+      "checked": null
+    },
+    {
       "name": "Amphenol",
       "ticker": "APH",
       "kind": "public",

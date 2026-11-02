@@ -24,13 +24,19 @@ log = logging.getLogger("crawler")
 
 
 def public_company_domains(path: str = "data/tech_companies.json") -> set[str]:
-    """Domains of companies already on the public-tech list."""
-    doc = tech.load_registry(path)
-    return {
+    """Domains that are already listed, so the startup crawl leaves them out.
+
+    Tech uses kind "public". Traditional companies carry a ticker instead.
+    """
+    domains = {
         (c.get("domain") or "").lower().removeprefix("www.")
-        for c in doc["companies"]
+        for c in tech.load_registry(path)["companies"]
         if c.get("kind") == "public" and c.get("domain")
     }
+    for company in tech.load_registry("data/traditional_companies.json")["companies"]:
+        if company.get("ticker") and company.get("domain"):
+            domains.add(company["domain"].lower().removeprefix("www."))
+    return {domain for domain in domains if domain}
 
 
 def crawl_live(workers: int = 8) -> list[dict]:
