@@ -25,6 +25,8 @@ from crawler import classify as C
     ("Member of Technical Staff", None, False, "unk"),
     ("Member of Technical Staff, Inference", 6, False, "senior"),
     ("Product Manager", None, False, "unk"),
+    ("Technical Lead Manager, Sensing Systems Design & Validation", None, False, "mgmt"),
+    ("Applied ML/AI Manager - Behavior Validation", None, False, "mgmt"),
 ])
 def test_level(title, yoe, ngo, expected):
     assert C.classify_level(title, yoe, ngo) == expected
@@ -45,6 +47,10 @@ def test_level(title, yoe, ngo, expected):
     ("Forward Deployed Engineer", "eng"),
     ("Data Analyst", None),
     ("Data Scientist", "eng"),
+    ("Technical Lead Manager, Sensing Systems Design & Validation", "eng"),
+    ("Applied ML/AI Manager - Behavior Validation", "eng"),
+    ("Senior Machine Learning Engineer – Perception & Embodied AI", "eng"),
+    ("Software Engineer, Embodied Intelligence", "eng"),
 ])
 def test_family(title, fam):
     assert C.classify_family(title) == fam
@@ -52,6 +58,17 @@ def test_family(title, fam):
 
 def test_member_of_technical_staff_is_eng():
     assert C.classify_family("Member of Technical Staff") == "eng"
+
+
+def test_embodied_titles_are_ai():
+    for title in (
+        "Software Engineer, Embodied Intelligence",
+        "Embodied AI Researcher",
+        "Perception Engineer - Multimodal & Embodied AI",
+    ):
+        assert C.classify_family(title) == "eng"
+        assert C.classify_subfamily(title, "eng") == "AI / ML"
+    assert C.classify_family("Embodied AI") is None
 
 
 @pytest.mark.parametrize("snips,yoe", [

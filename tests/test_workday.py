@@ -109,6 +109,27 @@ def test_list_splits_at_the_2000_cap_and_keeps_us():
     assert [c[1] for c in calls if c[0]] == [0, 20]
 
 
+def test_a_failed_page_is_retried():
+    calls = []
+
+    def poster(host, tenant, site, facets, offset):
+        calls.append(offset)
+        if offset == 0:
+            return {"total": 25, "jobPostings": [
+                {"title": "Senior Software Engineer", "externalPath": f"/job/{i}", "locationsText": "US, CA, Santa Clara"}
+                for i in range(20)
+            ], "facets": []}
+        if calls.count(20) == 1:
+            return None
+        return {"total": 25, "jobPostings": [
+            {"title": "Senior Machine Learning Engineer – Perception & Embodied AI", "externalPath": "/job/embodied", "locationsText": "Mountain View, California"}
+        ], "facets": []}
+
+    rows = list_postings("generalmotors.wd5.myworkdayjobs.com", "Careers_GM", poster=poster)
+    assert [r["externalPath"] for r in rows][-1] == "/job/embodied"
+    assert calls.count(20) == 2
+
+
 def test_country_facet_is_location_country_on_some_boards():
     def poster(host, tenant, site, facets, offset):
         if not facets:

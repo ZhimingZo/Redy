@@ -244,11 +244,18 @@ def list_postings(host: str, site: str, poster=_post) -> list[dict]:
             log.warning("workday %s/%s capped at %s rows", host, site, total)
         add(first.get("jobPostings"))
         offset = _PAGE
+        misses = 0
         while offset < total and offset < _CAP:
             nxt = poster(host, tenant, site, facets, offset)
             rows = (nxt or {}).get("jobPostings") or []
             if not rows:
-                break
+                misses += 1
+                if misses >= 3:
+                    log.warning("workday %s/%s listed %s of %s before a page failed", host, site, len(out), total)
+                    break
+                time.sleep(1.5 * misses)
+                continue
+            misses = 0
             add(rows)
             offset += _PAGE
 
@@ -291,16 +298,25 @@ def posted_at(info: dict, today=None) -> str | None:
 def _detail(host: str, tenant: str, site: str, path: str) -> dict | None:
     url = f"https://{host}/wday/cxs/{tenant}/{site}{path}"
     headers = {**UA, "Accept": "application/json"}
-    try:
-        r = requests.get(url, headers=headers, timeout=TIMEOUT)
-    except requests.RequestException:
-        return None
-    if r.status_code != 200:
-        return None
-    try:
-        return (r.json().get("jobPostingInfo") or {}) or None
-    except ValueError:
-        return None
+    for attempt in (1, 2, 3, 4):
+        try:
+            r = requests.get(url, headers=headers, timeout=TIMEOUT)
+        except requests.RequestException as e:
+            if attempt == 4:
+                log.warning("workday detail %s failed: %s", path, str(e)[:120])
+                return None
+            time.sleep(1.5 * attempt)
+            continue
+        if r.status_code in (429, 500, 502, 503) and attempt < 4:
+            time.sleep(1.5 * attempt)
+            continue
+        if r.status_code != 200:
+            return None
+        try:
+            return (r.json().get("jobPostingInfo") or {}) or None
+        except ValueError:
+            return None
+    return None
 
 
 def _locations(info: dict) -> list[str]:

@@ -16,7 +16,8 @@ _MGMT = re.compile(
     r"\b(engineering manager|manager,? (software|engineering|ml|machine learning|data|infrastructure|platform|security|applied)"
     r"|(software|ml|data|infrastructure|platform|security|research) (engineering )?manager|eng(ineering)? mgr"
     r"|head of|director|\bvp\b|vice president|\bcto\b|chief [a-z ]*officer|\bcpo\b"
-    r"|group product manager|\bgpm\b|senior manager|product director|tech lead manager|\btlm\b)",
+    r"|group product manager|\bgpm\b|senior manager|product director|tech(?:nical)? lead manager|\btlm\b"
+    r"|(?:applied\s+)?(?:\bml\b|\bai\b|machine learning)(?:\s*/\s*(?:\bml\b|\bai\b))?\s+manager)",
     re.I,
 )
 _STAFF = re.compile(r"\b(staff|principal|distinguished|fellow)\b", re.I)
@@ -106,7 +107,9 @@ _PM = re.compile(
 _PM_EXCLUDE = re.compile(r"product (marketing|design|designer|analyst|operations|ops|support|specialist|engineer)", re.I)
 _ENG = re.compile(
     r"engineer|developer|\bsre\b|devops|architect|scientist|\bcto\b|programmer|\bswe\b|technical staff|\bmts\b"
-    r"|head of (engineering|ai|ml|infrastructure|platform|research)|vp,? (of )?engineering|researcher",
+    r"|head of (engineering|ai|ml|infrastructure|platform|research)|vp,? (of )?engineering|researcher"
+    r"|tech(?:nical)? lead manager|\btlm\b"
+    r"|(?:applied\s+)?(?:\bml\b|\bai\b|machine learning|perception|embodied|autonomy|robotics)(?:\s*/\s*(?:\bml\b|\bai\b))?\s+manager",
     re.I,
 )
 _ENG_EXCLUDE = re.compile(
@@ -132,8 +135,8 @@ def classify_family(title: str, hint: str | None = None) -> str | None:
 
 
 _SUBFAMILIES = [
-    ("Eng Management", r"engineering manager|manager,? (software|engineering)|head of (engineering|ai|ml|infrastructure|platform)|director|\bvp\b|\bcto\b|tech lead manager"),
-    ("AI / ML", r"machine learning|\bml\b|\bai\b|llm|deep learning|computer vision|perception|\bnlp\b|research (scientist|engineer)|applied scientist|inference|model|researcher|autonomy"),
+    ("Eng Management", r"engineering manager|manager,? (software|engineering)|head of (engineering|ai|ml|infrastructure|platform)|director|\bvp\b|\bcto\b|tech(?:nical)? lead manager|(?:applied\s+)?(?:\bml\b|\bai\b|machine learning)(?:\s*/\s*(?:\bml\b|\bai\b))?\s+manager"),
+    ("AI / ML", r"machine learning|\bml\b|\bai\b|llm|deep learning|computer vision|perception|\bembodied\b|\bnlp\b|research (scientist|engineer)|applied scientist|inference|model|researcher|autonomy"),
     ("Data", r"data (engineer|scientist|platform|infrastructure)|analytics engineer"),
     ("Security", r"security|offensive|appsec|detection|red team"),
     ("Infra / Platform", r"infrastructure|platform|devops|\bsre\b|reliability|cloud|distributed|kernel|network|storage|compiler|gpu|performance|systems engineer|site reliability|developer productivity|devex|build"),

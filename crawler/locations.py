@@ -119,6 +119,16 @@ def _state_code(s: str) -> str | None:
     return _STATE_BY_NAME.get(t.lower())
 
 
+def _city_inside(text: str) -> list[str] | None:
+    """An office label that still names a known city: 'GM Automation - Sunnyvale'."""
+    low = (text or "").lower()
+    for name in sorted((n for n in CITIES if len(n) >= 4), key=len, reverse=True):
+        if re.search(rf"\b{re.escape(name)}\b", low):
+            city, st = CITIES[name]
+            return [f"{city}, {st}"]
+    return None
+
+
 def _place(piece: str) -> list[str] | None:
     """One place (no remote words) -> display strings; [] when not a place; None when outside the US."""
     s = re.sub(r"\s+", " ", piece).strip(" ,-–:()")
@@ -165,6 +175,9 @@ def _place(piece: str) -> list[str] | None:
             st = _state_code(dash[1])
             if st and dash[0] and not _state_code(dash[0]):
                 return [_city_state(dash[0], st)]
+        found = _city_inside(p)
+        if found:
+            return found
         return []
     # several "City, ST" pairs in one string
     pairs = re.findall(r"([^,]+?),\s*([A-Z]{2})\b(?!\w)", s)

@@ -33,6 +33,7 @@ from crawler.locations import pretty_locations as P
     (["Massachusetts - Boston"], ["Boston, MA"], False),
     (["California - San Francisco"], ["San Francisco, CA"], False),
     (["Netherlands - Hertogenbosch"], [], False),
+    (["GM Automation - Sunnyvale - GM Automation - Sunnyvale"], ["Sunnyvale, CA"], False),
 ])
 def test_pretty(raw, locs, remote):
     assert P(raw) == (locs, remote)
