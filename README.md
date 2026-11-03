@@ -1,46 +1,76 @@
 # Redy
 
-A free job board for **Mid-Senior and above** engineering and product roles. v0 covers **US startups backed by a16z or Y Combinator**, sourced from each company's own job board.
+![Redy: mid-senior engineering and product jobs, taken from each company's own job board](web/og.jpg)
 
-## How the data is collected
+**[redy.fyi](https://redy.fyi)** · [source](https://github.com/ZhimingZo/reedy)
 
-| Source | Discovery | Jobs |
-| --- | --- | --- |
-| a16z portfolio | `jobs.a16z.com/companies` (embedded company records: stage, headcount, domain) → each company's a16z page links to its ATS board | Ashby, Greenhouse and Lever public JSON APIs |
-| Y Combinator | open `yc-oss` dataset of hiring companies | `ycombinator.com/companies/<slug>/jobs` (structured role, min experience, salary, visa) |
+Redy is a free job board for **mid-senior and above** engineering and product roles in the United States. Every listing is read from that company's own career site, and the link opens the employer's posting.
 
-Then `crawler/normalize.py` keeps engineering and PM roles in the US, classifies level (`mid`, `senior`, `staff`, `mgmt`, `unk`; junior is dropped), years of experience, specialty, pay (annual USD) and visa sponsorship, and merges duplicates. Rules live in `crawler/classify.py`; `crawler/locations.py` cleans locations to one form ("San Francisco, CA", "Remote (US)") and drops non-US remote roles. Tests are in `tests/`.
+## Why it exists
+
+A senior search means opening a different career site for every company, then filtering out internships and new-grad programs by hand. General job boards mix those in, and the apply button often leaves the company that is actually hiring.
+
+Redy keeps one list: US engineering and product jobs at a level where someone is already doing the work. Intern, new-grad, and junior titles are left off. The point is to see the role where the company posted it, and to remember where you are in your own search.
+
+## Features
+
+### Three tracks
+
+- **Startups.** Companies backed by a16z or Y Combinator that are still private. A company that is already public is not listed here.
+- **Tech.** US public technology companies and large US unicorns, including platforms that sit outside a narrow software index.
+- **Traditional.** Recognizable US companies in banking, retail, healthcare, and industry.
+
+Search follows the company. Typing a name such as Pinterest on the Startups track moves you to Tech, where that company actually is.
+
+### Finding a role
+
+- Search titles, companies, and skills.
+- Level from mid-senior through staff and management. Roles with no stated level can be included or hidden.
+- Engineering, product, or both. Specialties such as AI / ML, infrastructure, data, and security are separate chips.
+- United States, US remote, or a metro: SF Bay Area, New York, Seattle, Los Angeles, Boston, Austin, Chicago.
+- A pay floor, and a filter for roles that publish a range.
+- Sort by last update, highest pay, or seniority.
+- **Updated** is the last change on the employer's board when that board provides one, not the day Redy first stored the row.
+- Copy a link to the exact filters. The address is the view.
+
+### Whether the role is still the same
+
+A listing stays **Open** while it is still on the company board and the description matches the last check. **Changed** means it is still listed and the description was rewritten. A saved role that leaves the board becomes **Closed** in the tracker. The check reads the board's own listing. An HTTP 200 from the career site is not treated as proof that the job is open.
+
+Startups are crawled every hour. Tech and Traditional are rebuilt once a day, and the link check runs after each of those crawls.
+
+### Tracker
+
+Star a role and it stays in this browser. There is no account.
+
+- Move it through Saved, Applied, Recruiter screen, Interviewing, Offer, Rejected, and Withdrawn.
+- Keep a one-line note for the next step, a recruiter, or a referral.
+- The applied date fills in the day you mark Applied. You can change it.
+- A follow-up date brings that role to the top on the day it is due.
+- If the posting later closes or the description changes, the saved row shows that status.
+
+## What is on the board
+
+The live site is the current count. As a snapshot while this was published, the board held about 3,800 startup roles, 12,700 tech roles, and 6,600 traditional roles.
+
+Only engineering and product families are stored: software engineering, research engineering, data science work that is a scientist or engineer role, and product management. Sales engineering, recruiting, and analyst titles are not. Locations outside the United States are not.
+
+Research engineer, research scientist, and applied scientist titles are included. A title that also says LLM, VLM, or multimodal lands on the AI / ML chip. Internships and titles marked I or II are not.
 
 ## Run it
 
 ```bash
 pip install -r requirements.txt
 python -m pytest -q tests
-python -m crawler                                  # live crawl -> web/data/jobs.json
-python -m crawler --from-snapshots snapshots/      # rebuild from saved snapshots
-python -m http.server -d web 8000                  # open http://localhost:8000
-python scripts/bundle.py dist/redy.html           # single-file build for previews
+python -m crawler                                  # startups -> web/data/jobs.json
+python -m crawler --refresh tech                   # rebuild the Tech board
+python -m crawler --refresh traditional            # rebuild the Traditional board
+python -m crawler --monitor                        # recheck listings against the board, not HTTP 200
+python -m http.server -d web 8000                  # http://localhost:8000
 ```
 
-## Deploy (free)
+## Deploy
 
-1. Push this folder to a GitHub repo.
-2. `.github/workflows/crawl.yml` crawls a16z and YC once a day and commits `web/data/jobs.json`. Tech and Traditional refresh once a day, two hours later.
-3. Import the repo in Vercel with **Root directory = `web`**, no build command. Every data commit redeploys.
+The site is [redy.fyi](https://redy.fyi). It is the `web/` directory on Vercel, with no build step. Pushes that change `web/` redeploy.
 
-## Layout
-
-```
-crawler/            __main__.py  classify.py  locations.py  normalize.py  sources/{ats,discovery}.py
-tests/              classifier tests
-web/                index.html  styles.css  app.js  data/jobs.json
-scripts/bundle.py   inline everything into one HTML file
-snapshots/          a16z.json  yc.json  (first crawl, Oct 31, 2026)
-```
-
-## Next iterations
-
-- Tech and Traditional industry tracks: Workday, Eightfold, Oracle and custom career-site adapters.
-- Tracker accounts: `supabase/schema.sql` plus Google sign-in. Each person's rows are readable only by that login.
-- Email and phone push alerts for saved searches; AI mock interviews.
-- LLM fallback for roles with no stated level (`unk`, ~17% of rows today).
+GitHub Actions crawls startups hourly (`.github/workflows/crawl.yml`) and refreshes Tech and Traditional daily (`.github/workflows/refresh.yml`). Both commit the data files they change.
