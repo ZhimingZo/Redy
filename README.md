@@ -2,7 +2,7 @@
 
 ![Redy: mid-senior engineering and product jobs, taken from each company's own job board](web/og.jpg)
 
-**[redy.fyi](https://redy.fyi)** · [source](https://github.com/ZhimingZo/reedy)
+**[redy.fyi](https://redy.fyi)** · [source](https://github.com/ZhimingZo/Redy)
 
 Redy is a free job board for **mid-senior and above** engineering and product roles in the United States. Every listing is read from that company's own career site, and the link opens the employer's posting.
 
