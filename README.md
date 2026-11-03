@@ -8,9 +8,9 @@ Redy is a free job board for **mid-senior and above** engineering and product ro
 
 ## Why it exists
 
-A senior search means opening a different career site for every company, then filtering out internships and new-grad programs by hand. General job boards mix those in, and the apply button often leaves the company that is actually hiring.
+Recent layoffs in tech put a lot of experienced people back on the market at the same time. Redy is a community board for that search. Open engineering and product roles are already in one list, so you can apply and track each application quickly. The hours that used to go to Google stay available for interview preparation.
 
-Redy keeps one list: US engineering and product jobs at a level where someone is already doing the work. Intern, new-grad, and junior titles are left off. The point is to see the role where the company posted it, and to remember where you are in your own search.
+The list is mid-senior and above, in the United States. Intern, new-grad, and junior titles are left off. Each link opens the posting on the company's own career site.
 
 ## Features
 
